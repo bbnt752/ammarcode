@@ -1,0 +1,7 @@
+#Adults QA environment
+
+dfc.docbroker.host[0]=dmpjq01.unix.brm.pri
+dfc.docbroker.port[0]=1489
+dfc.globalregistry.repository=glopjq
+dfc.globalregistry.username=dm_bof_registry
+dfc.globalregistry.password=hNFGqgzniEC8zHacCB9s/A==

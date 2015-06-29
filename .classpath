@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/activation.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/All-MB.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/aspectjrt.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/bpmutil.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/certjFIPS.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/ci.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/collaboration.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/commons-codec-1.3.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/commons-lang-2.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/configservice-api.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/configservice-impl.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/dfc.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/DmcRecords.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/dms-client-api.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/jaxb-api.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/jaxb-impl.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/jcifs-krb5-1.3.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/jsafeFIPS.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/jsr173_api.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/krbutil.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/log4j.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/messageArchive.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/messageService.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/subscription.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/workflow.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/xtrim-api.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Documentum/Shared/xtrim-server.jar"/>
+	<classpathentry kind="lib" path="config"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/senn-magic-3.5.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
