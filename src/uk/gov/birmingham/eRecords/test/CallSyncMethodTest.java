@@ -13,12 +13,14 @@ import com.documentum.fc.common.DfException;
 
 import uk.gov.birmingham.eRecords.ops.ERecordsOperations;
 import uk.gov.birmingham.utils.DFCUtils;
+import uk.gov.birmingham.utils.IDFCUtils;
 
 public class CallSyncMethodTest {
 
 	private String userName;
 	private String password;
 	private String repository;
+	private IDFCUtils idfcutils;
 	private IDfSessionManager sMgr = null;
 	private IDfSession session = null;
 
@@ -32,7 +34,8 @@ public class CallSyncMethodTest {
 		 userName = "dmadmin";
 		 repository = "eimabupp";
 		 password = "ppadm1n";
-		 sMgr = DFCUtils.getSessionManager(userName, password, repository);
+		 idfcutils = new DFCUtils();
+		 sMgr = idfcutils.getSessionManager(userName, password, repository);
 		 assertNotNull(sMgr); 
 		 System.out.println(sMgr.getLocale());
 		 System.out.println(sMgr.getPrincipalName());
@@ -56,7 +59,7 @@ public class CallSyncMethodTest {
 			String arguments = "-docbase_name eimabupp -user_name dmadmin -job_id 080004bc80000395 -method_trace_level 10";
 			String methodName = "dm_LDAPSynchronization";
 
-			IDfCollection results = DFCUtils.executeMethodSynchronous(methodName, arguments, session);
+			IDfCollection results = idfcutils.executeMethodSynchronous(methodName, arguments, session);
 			assertNotEquals(null, results);
 		} catch (DfException df) {
 			assertEquals(null, df);
@@ -72,7 +75,7 @@ public class CallSyncMethodTest {
 			String arguments = "-docbase_name eimabupp -user_name dmadmin -job_id 080004bc80000339 -method_trace_level 10";
 			String methodName = "dm_UserRename";
 			
-			IDfCollection results = DFCUtils.executeMethodSynchronous(methodName, arguments, session);
+			IDfCollection results = idfcutils.executeMethodSynchronous(methodName, arguments, session);
 			assertNotEquals(null, results);
 		} catch (DfException df) {
 			assertEquals(null, df);

@@ -21,7 +21,7 @@ import com.documentum.fc.common.IDfId;
 import com.documentum.fc.common.IDfList;
 import com.documentum.fc.common.IDfLoginInfo;
 
-public class DFCUtils {
+public class DFCUtils implements IDFCUtils {
 	
 
 	/**
@@ -33,7 +33,7 @@ public class DFCUtils {
 	 * @return				returns the session manager
 	 * @throws Exception
 	 */
-	public static IDfSessionManager getSessionManager (String userName, String password, String repository) throws DfException
+	public IDfSessionManager getSessionManager (String userName, String password, String repository) throws DfException
 	{
 		// create a client object using a factory method in DfClientX
 		DfClientX clientx = new DfClientX();
@@ -59,7 +59,7 @@ public class DFCUtils {
 	 * @param session		The DFC session object
 	 * 
 	 */
-	public static void executeCYPFUserRenameQueries (String oldUserName, String newUserName, IDfSession session) throws DfException {
+	public void executeCYPFUserRenameQueries (String oldUserName, String newUserName, IDfSession session) throws DfException {
 		
 		String escapedOldUserName = oldUserName.replace("'", "''");
 		String escapedNewUserName = newUserName.replace("'", "''");
@@ -77,7 +77,7 @@ public class DFCUtils {
 	 * @param userID		The user id to be initialized to this value
 	 * @param userName		The userName 
 	 */
-	public static void initializeAsUnixUser(String userID, String userName, IDfSession session) throws DfException {
+	public void initializeAsUnixUser(String userID, String userName, IDfSession session) throws DfException {
 		//We have to run four dql queries in this case as follows:
 		//TODO: Test this method with the user name having apostrophe in it.
 		//check if userName contains a quote character, it will need to be escaped.
@@ -117,7 +117,7 @@ public class DFCUtils {
 	 * 
 	 * 
 	 */
-	public static IDfCollection executeMethodSynchronous (String methodName, String arguments, IDfSession session) throws DfException {
+	public IDfCollection executeMethodSynchronous (String methodName, String arguments, IDfSession session) throws DfException {
 		// Call the method.
 		// *********************************************************************************
 		IDfList argList = new DfList();
@@ -152,10 +152,64 @@ public class DFCUtils {
 	 * @throws DfException 
 	 * 
 	 */
-	public static void userRenameNonSynchronous (String oldUserName, String newUserName, IDfSession session ) throws DfException {
+	public void userRenameNonSynchronous (String oldUserName, String newUserName, IDfSession session ) throws DfException {
 		IDfUser dctmUser = session.getUser(oldUserName);
 		dctmUser.renameUser(newUserName, true, true, false);
 		System.out.println("renameUser call method completed");
+	}
+	
+	/**
+	 * This utility method is used to rename a user
+	 * @param oldUserName	The old user name
+	 * @param newUserName	The new name of the user
+	 * @param session		The DFC session
+	 * @param cypf
+	 * 
+	 * @return 
+	 * @throws DfException 
+	 * 
+	 */
+	public IDfCollection userRenameSynchronous (String oldUserName, String newUserName, IDfSession session) throws DfException {
+		//validate the oldUserName object exists in the repository
+		
+		IDfUser user = null;
+		IDfId id = null;
+		String sessionUser = null;
+		String sessionDocbase = null;
+		String jobId = null;
+		String arguments = null;
+		
+		//Escape the old and new user names for quotes
+		String escapedOldUserName = oldUserName.replace("'", "''");
+		String escapedNewUserName = newUserName.replace("'", "''");
+		
+		
+			user = session.getUser(oldUserName);
+			if (user == null) {
+				System.out.println("The " + oldUserName + " doesn't exist in the system");
+				throw new DfException("The user " + oldUserName +  "doesn't exist in the repository");
+				//return false;
+			}
+			//Get the details about the current session as it will be used in arguments.
+			
+			IDfLoginInfo loginInfo = session.getLoginInfo();
+			sessionUser = loginInfo.getUser();
+			sessionDocbase = session.getDocbaseName();
+			id = (IDfId) session.getIdByQualification("dm_job where object_name = 'dm_UserRename'");
+			jobId = id.toString();
+			arguments = "-docbase_name " + sessionDocbase + " -user_name " + sessionUser + " -job_id " + jobId + " -method_trace_level 10";
+			//TODO: First see if the oldUserName has any apostrophe in it or not, otherwise method will fail.
+			
+			//Firstly we need to create a dm_job_request object by constructing the following query
+			String jobReqQuery = "create dm_job_request object set object_name='UserRename', set job_name='dm_UserRename', set method_name='dm_UserRename', "
+					+ "set request_completed=FALSE, append arguments_keys='OldUserName', append arguments_keys='NewUserName', append arguments_keys='report_only', "
+					+ "append arguments_keys='unlock_locked_obj', append arguments_values='" + escapedOldUserName + "', append arguments_values='" + escapedNewUserName + "',"
+							+ "append arguments_values='F', append arguments_values='T'";
+			//Now execute this query using executeDQL method
+			executeDQL(jobReqQuery, session);
+			//Now it is time to call the userRename method
+			IDfCollection results = executeMethodSynchronous("dm_UserRename", arguments, session);
+			return results;
 	}
 
 	
@@ -170,7 +224,7 @@ public class DFCUtils {
 	 * @throws DfException 
 	 * 
 	 */
-	public static void userRenameSynchronous (String oldUserName, String newUserName, IDfSession session, boolean cypfQueries ) throws DfException {
+	public void userRenameSynchronous (String oldUserName, String newUserName, IDfSession session, boolean cypfQueries ) throws DfException {
 		//validate the oldUserName object exists in the repository
 		
 		IDfUser user = null;
@@ -234,7 +288,7 @@ public class DFCUtils {
 	 * @return				returns the session manager
 	 * @throws Exception
 	 */
-	public static IDfSessionManager getSessionManagerTrustedAuth (String userName, String repository) throws DfException
+	public IDfSessionManager getSessionManagerTrustedAuth (String userName, String repository) throws DfException
 	{
 		// create a client object using a factory method in DfClientX
 		DfClientX clientx = new DfClientX();
@@ -262,7 +316,7 @@ public class DFCUtils {
 	 * @return		true/false to show if the query was executed successfully or not
 	 * 
 	 */
-	public static void executeDQL(String dql, IDfSession session) throws DfException {
+	public void executeDQL(String dql, IDfSession session) throws DfException {
 		IDfQuery query = new DfClientX().getQuery();	
 		query.setDQL(dql);
 		query.execute(session, IDfQuery.DF_EXEC_QUERY);				
@@ -279,7 +333,7 @@ public class DFCUtils {
 	 * @param session		The documentum session.
 	 * @return
 	 */
-	public static IDfId createCabinet(Object o, String cabName, IDfSession session) {
+	public IDfId createCabinet(Object o, String cabName, IDfSession session) {
         StringBuffer cabQual = new StringBuffer(32);
         IDfId cabId = null;
         cabQual.append("dm_cabinet where object_name='").append(cabName).append("'");
@@ -315,7 +369,7 @@ public class DFCUtils {
 	 * @param session			dfc session object
 	 * @return
 	 */
-	public static IDfId createFolder(Object o, String folderName, IDfId parentId, IDfSession session) {
+	public IDfId createFolder(Object o, String folderName, IDfId parentId, IDfSession session) {
 		
 		IDfFolder parentFldr = null;
 		String fldrPath = null;
@@ -348,7 +402,7 @@ public class DFCUtils {
 	 * Returns the r_install_owner from the connected server's dm_server_config object
 	 *  Throws an IOException if one occurs during the query
 	 */		
-	public static String getDocbaseSUSer(IDfSession sess, PrintWriter output)throws Exception{
+	public String getDocbaseSUSer(IDfSession sess, PrintWriter output)throws Exception{
 		String strSUser = "";
 		//DfExUtils docQuery = new DfExUtils(output); 
 		//get the docbase's installation owner: select r_install_owner from dm_server_config
