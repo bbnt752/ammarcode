@@ -51,62 +51,7 @@ public class DFCUtils implements IDFCUtils {
 		return sessionMgr;
 	}
 	
-	/**
-	 * This utility method executes two queries needed after name change in CYPF
-	 * 
-	 * @param oldUserName	The old name of the user under question
-	 * @param newUserName	The new name of the user
-	 * @param session		The DFC session object
-	 * 
-	 */
-	public void executeCYPFUserRenameQueries (String oldUserName, String newUserName, IDfSession session) throws DfException {
-		
-		String escapedOldUserName = oldUserName.replace("'", "''");
-		String escapedNewUserName = newUserName.replace("'", "''");
-		
-		String dql1 = "execute EXEC_SQL with query ='update dm_sysobject_s set r_creator_name = ''" + escapedNewUserName + "'' where r_creator_name = ''" + escapedOldUserName + "'' '";
-		String dql2 = "execute EXEC_SQL with query ='update dm_sysobject_s set r_modifier = ''" + escapedNewUserName + "'' where r_modifier = ''" + escapedOldUserName + "'' '";
-		//Now execute the queries
-		executeDQL(dql1, session);
-		executeDQL(dql2, session);
-	}
 	
-	/**
-	 * This utility method resets a dm_user as a unix user (that can do fresh sync with AD)
-	 * 
-	 * @param userID		The user id to be initialized to this value
-	 * @param userName		The userName 
-	 */
-	public void initializeAsUnixUser(String userID, String userName, IDfSession session) throws DfException {
-		//We have to run four dql queries in this case as follows:
-		//TODO: Test this method with the user name having apostrophe in it.
-		//check if userName contains a quote character, it will need to be escaped.
-		String escapedUserName = userName.replace("'", "''");
-		boolean txStartedHere = false;
-		if (!session.isTransactionActive()) {
-			session.beginTrans();
-			txStartedHere = true;
-		}
-		String dql1 = "update dm_user objects set user_global_unique_id = ':" + userID + "' where user_name = '" + escapedUserName + "'";
-		String dql2 = "update dm_user objects set user_ldap_dn = '' where user_name = '" + escapedUserName + "'";
-		String dql3 = "update dm_user objects set user_source = 'unix only'  where user_name = '" + escapedUserName + "'";		
-		String dql4 = "update dm_user objects set user_login_name = '" + userID + "'  where user_name = '" + escapedUserName + "'";
-		
-		try {
-			executeDQL(dql1, session);
-			executeDQL(dql2, session);
-			executeDQL(dql3, session);
-			executeDQL(dql4, session);
-			if (txStartedHere) {
-				session.commitTrans();
-			}
-		}
-			finally {
-				if ( txStartedHere && session.isTransactionActive())
-					session.abortTrans();
-			}
-				
-		}
 	
 	
 	/**
@@ -213,69 +158,7 @@ public class DFCUtils implements IDFCUtils {
 	}
 
 	
-	/**
-	 * This utility method is used to rename a user
-	 * @param oldUserName	The old user name
-	 * @param newUserName	The new name of the user
-	 * @param session		The DFC session
-	 * @param cypf
-	 * 
-	 * @return 
-	 * @throws DfException 
-	 * 
-	 */
-	public void userRenameSynchronous (String oldUserName, String newUserName, IDfSession session, boolean cypfQueries ) throws DfException {
-		//validate the oldUserName object exists in the repository
-		
-		IDfUser user = null;
-		IDfId id = null;
-		String sessionUser = null;
-		String sessionDocbase = null;
-		String jobId = null;
-		String arguments = null;
-		
-		//Escape the old and new user names for quotes
-		String escapedOldUserName = oldUserName.replace("'", "''");
-		String escapedNewUserName = newUserName.replace("'", "''");
-		
-		
-			user = session.getUser(oldUserName);
-			if (user == null) {
-				System.out.println("The " + oldUserName + " doesn't exist in the system");
-				throw new DfException("The user " + oldUserName +  "doesn't exist in the repository");
-				//return false;
-			}
-			//Get the details about the current session as it will be used in arguments.
-			
-			IDfLoginInfo loginInfo = session.getLoginInfo();
-			sessionUser = loginInfo.getUser();
-			sessionDocbase = session.getDocbaseName();
-			id = (IDfId) session.getIdByQualification("dm_job where object_name = 'dm_UserRename'");
-			jobId = id.toString();
-			arguments = "-docbase_name " + sessionDocbase + " -user_name " + sessionUser + " -job_id " + jobId + " -method_trace_level 10";
-			//TODO: First see if the oldUserName has any apostrophe in it or not, otherwise method will fail.
-			
-			//Firstly we need to create a dm_job_request object by constructing the following query
-			String jobReqQuery = "create dm_job_request object set object_name='UserRename', set job_name='dm_UserRename', set method_name='dm_UserRename', "
-					+ "set request_completed=FALSE, append arguments_keys='OldUserName', append arguments_keys='NewUserName', append arguments_keys='report_only', "
-					+ "append arguments_keys='unlock_locked_obj', append arguments_values='" + escapedOldUserName + "', append arguments_values='" + escapedNewUserName + "',"
-							+ "append arguments_values='F', append arguments_values='T'";
-			//Now execute this query using executeDQL method
-			executeDQL(jobReqQuery, session);
-			//Now it is time to call the userRename method
-			IDfCollection results = executeMethodSynchronous("dm_UserRename", arguments, session);	
-			//System.out.println("Running the method: dm_UserRename. It may take couple minutes....");
-			if (results != null && cypfQueries == true) {
-				//This means we have to execute the queries for cypf
-				executeCYPFUserRenameQueries(oldUserName, newUserName, session);	
 
-					
-			} 
-		
-
-
-		//return results;
-	}
 	
 	
 	 
@@ -422,6 +305,11 @@ public class DFCUtils implements IDFCUtils {
 	public static void logMethod(OutputStream output, String message) throws IOException {
 		output.write(message.getBytes());
 	}
+
+
+
+
+
 
 	
 }

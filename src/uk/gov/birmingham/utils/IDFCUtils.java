@@ -11,10 +11,9 @@ import com.documentum.fc.common.IDfId;
 public interface IDFCUtils {
 
 	public IDfSessionManager getSessionManager (String userName, String password, String repository) throws DfException;
-	public void executeCYPFUserRenameQueries (String oldUserName, String newUserName, IDfSession session) throws DfException;
-	public void initializeAsUnixUser(String userID, String userName, IDfSession session) throws DfException;
 	public IDfCollection executeMethodSynchronous (String methodName, String arguments, IDfSession session) throws DfException;
 	public void userRenameNonSynchronous (String oldUserName, String newUserName, IDfSession session ) throws DfException;
+	public IDfCollection userRenameSynchronous (String oldUserName, String newUserName, IDfSession session) throws DfException;
 	public IDfSessionManager getSessionManagerTrustedAuth (String userName, String repository) throws DfException;
 	public void executeDQL(String dql, IDfSession session) throws DfException;
 	public IDfId createCabinet(Object o, String cabName, IDfSession session);
