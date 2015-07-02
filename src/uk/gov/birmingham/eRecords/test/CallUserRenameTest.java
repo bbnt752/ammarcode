@@ -84,7 +84,7 @@ public class CallUserRenameTest {
 			IDfUser oldUser = session.getUser(oldName);
 			assertTrue(oldUser != null);
 			
-			DFCUtils.userRenameSynchronous(oldName, newName, session, repository.startsWith("cypf"));
+			DFCUtils.eRecordsUserRenameSynchronous(oldName, newName, session, repository.startsWith("cypf"));
 			IDfUser newUser = session.getUser(newName);
 			assertNotNull(newUser);
 			assertEquals(newUser.getUserName(), newName);
@@ -119,7 +119,7 @@ public class CallUserRenameTest {
 		String newName = "Ammar Khalids";
 		
 		
-			DFCUtils.userRenameSynchronous(oldName, newName, session, repository.startsWith("cypf"));			
+			DFCUtils.eRecordsUserRenameSynchronous(oldName, newName, session, repository.startsWith("cypf"));			
 			//The exception should have been thrown, otherwise fail the test
 			fail("The DfException was expected");		
 		

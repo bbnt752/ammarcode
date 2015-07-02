@@ -306,10 +306,5 @@ public class DFCUtils implements IDFCUtils {
 		output.write(message.getBytes());
 	}
 
-
-
-
-
-
 	
 }

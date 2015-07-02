@@ -1,5 +1,8 @@
 package uk.gov.birmingham.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import com.documentum.fc.client.IDfCollection;
 import com.documentum.fc.client.IDfSession;
 import com.documentum.fc.client.IDfUser;
@@ -11,7 +14,7 @@ public class ERecordsUtils implements IERecordsUtils {
 	
 	IDFCUtils dfcUtils;
 	
-	ERecordsUtils() {
+	public ERecordsUtils() {
 		dfcUtils = new DFCUtils();
 	}
 
@@ -43,8 +46,6 @@ public class ERecordsUtils implements IERecordsUtils {
 	 */
 	public void initializeAsUnixUser(String userID, String userName, IDfSession session) throws DfException {
 		//We have to run four dql queries in this case as follows:
-		//TODO: Test this method with the user name having apostrophe in it.
-		//check if userName contains a quote character, it will need to be escaped.
 		String escapedUserName = userName.replace("'", "''");
 		boolean txStartedHere = false;
 		if (!session.isTransactionActive()) {
@@ -84,7 +85,7 @@ public class ERecordsUtils implements IERecordsUtils {
 	 * @throws DfException 
 	 * 
 	 */
-	public void userRenameSynchronous (String oldUserName, String newUserName, IDfSession session, boolean cypfQueries ) throws DfException {
+	public void eRecordsUserRenameSynchronous (String oldUserName, String newUserName, IDfSession session, boolean cypfQueries ) throws DfException {
 		//validate the oldUserName object exists in the repository
 		
 			IDfCollection results = dfcUtils.userRenameSynchronous(oldUserName, newUserName, session);
@@ -94,10 +95,43 @@ public class ERecordsUtils implements IERecordsUtils {
 				executeCYPFUserRenameQueries(oldUserName, newUserName, session);	
 					
 			} 
-		
-
-
-		//return results;
 	}
+	
+	
+	public void callLDAPSync(IDfSession session) {
+
+		try {
+
+			assert (session != null);
+			
+			//TODO: The argument for the ldap method below is specific to a repository. It has to be generic.
+			String arguments = "-docbase_name eimabupp -user_name dmadmin -job_id 080004bc80000395 -method_trace_level 10";
+			String methodName = "dm_LDAPSynchronization";
+
+			IDfCollection results = dfcUtils.executeMethodSynchronous(methodName, arguments, session);
+			assertNotEquals(null, results);
+		} catch (DfException df) {
+			assertEquals(null, df);
+		}
+	}
+	
+	public void callUserRename(IDfSession session) {
+		
+		try {
+			assert (session != null);
+			
+			//TODO: The argument for the userRename method below is specific to a repository. It has to be generic.
+			String arguments = "-docbase_name eimabupp -user_name dmadmin -job_id 080004bc80000339 -method_trace_level 10";
+			String methodName = "dm_UserRename";
+			
+			IDfCollection results = dfcUtils.executeMethodSynchronous(methodName, arguments, session);
+			assertNotEquals(null, results);
+		} catch (DfException df) {
+			assertEquals(null, df);
+		}
+			
+	}
+
+
 
 }

@@ -1,3 +1,5 @@
+#Chilren PP environment
+
 dfc.docbroker.host[0]=dmcsbupp.brm.pri
 dfc.docbroker.port[0]=1489
 dfc.globalregistry.repository=group
