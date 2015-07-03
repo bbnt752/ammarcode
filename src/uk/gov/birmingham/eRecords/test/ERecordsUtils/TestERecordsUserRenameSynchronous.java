@@ -1,6 +1,13 @@
-package uk.gov.birmingham.eRecords.test;
+package uk.gov.birmingham.eRecords.test.ERecordsUtils;
 
 import static org.junit.Assert.*;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
@@ -16,47 +23,70 @@ import com.documentum.fc.client.IDfSessionManager;
 import com.documentum.fc.client.IDfUser;
 import com.documentum.fc.common.DfException;
 
-import uk.gov.birmingham.utils.DFCUtils;
+import uk.gov.birmingham.eRecords.utils.*;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.rules.ExpectedException;
 
-import uk.gov.birmingham.utils.DFCUtils;
 
-public class CallUserRenameTest {
+
+public class TestERecordsUserRenameSynchronous {
 	
 	private String userName;
 	private String password;
 	private String repository;
 	private IDfSessionManager sMgr = null;
 	private IDfSession session = null;
+	private IDFCUtils dfcUtils = null;
+	private IERecordsUtils eRecordsUtils = null;
+
+	public TestERecordsUserRenameSynchronous() {
+		dfcUtils = new DFCUtils();
+		eRecordsUtils = new ERecordsUtils();
+	}
 
 
 	@Before
 	public void setUp() throws Exception {
+		Properties prop = new Properties();
+		InputStream input = null;
+		FileInputStream fileInput = null;
 		
-		//Adults QA
-		/*
-		 userName = "dmadmin"; 
-		 repository = "dmadlpjq"; 
-		 password = "dmadm1n";
-		 */
-		 //Adults PP
-		 /*
-		 userName = "dmadmin";
-		 repository = "eimabupp";
-		 password = "ppadm1n";
-		 */
-		 //CYPF PP
-		 userName = "cypadmin";
-		 repository = "cypf_pp";
-		 password = "cypadm1n";
+		try {
+			
+			URL location = TestInitializeAsUnixUser.class.getProtectionDomain().getCodeSource().getLocation();
+	        System.out.println(location.getFile());
+	    
+	        File file = new File("config\\credentials.properties");
+			fileInput = new FileInputStream(file);
+			
+			//input = getClass().getResourceAsStream(filename);
+			if (fileInput == null) {
+				fail("could not load configuration file");
+				return;
+			}
+			prop.load(fileInput);
+			
+			userName = prop.getProperty("username");
+			repository = prop.getProperty("repository");
+			password = prop.getProperty("password");
+			
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} finally {
+			if (input != null) {
+				try {
+					input.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
 		 
-		 sMgr = DFCUtils.getSessionManager(userName, password, repository);
+		 sMgr = dfcUtils.getSessionManager(userName, password, repository);
 		 assertNotNull(sMgr); 
 		 System.out.println(sMgr.getLocale());
-		 System.out.println(sMgr.getPrincipalName());
+		 System.out.println(sMgr.getPrincipalName()); 
 		 session = sMgr.newSession(repository); 
 		 assertNotNull(session);
 		 
@@ -70,11 +100,9 @@ public class CallUserRenameTest {
 	
 	@Test
 	
-	public void userRenameNormal() {
+	public void testValidCYPFUserDetails_shouldRenameAndUpdateObjsOk() {
 		assert (session != null);
 		boolean userRenamed = false;		
-		//String oldName = "adults_hiv_usr3";
-		//String newName = "adults_hiv_usr30";
 		String oldName = "Cypf Support Staff Usr60";
 		String newName = "Cypf Support Staff Usr6";
 		
@@ -84,7 +112,7 @@ public class CallUserRenameTest {
 			IDfUser oldUser = session.getUser(oldName);
 			assertTrue(oldUser != null);
 			
-			DFCUtils.eRecordsUserRenameSynchronous(oldName, newName, session, repository.startsWith("cypf"));
+			eRecordsUtils.eRecordsUserRenameSynchronous(oldName, newName, session, repository.startsWith("cypf"));
 			IDfUser newUser = session.getUser(newName);
 			assertNotNull(newUser);
 			assertEquals(newUser.getUserName(), newName);
@@ -103,14 +131,54 @@ public class CallUserRenameTest {
 		
 	}
 	
+	@Test
+	
+	public void testValidAdultsUserDetails_shouldRenameAndUpdateObjsOk() {
+		
+	}
+	
+	@Test
+	
+	public void testValidHousingUserDetails_shouldRenameAndUpdateObjsOk() {
+		
+	}
+	
+	
+	@Test
+	public void testWithoutArgsInput_shouldThrowInvalidArgEx() {
+		
+	}
+	
+	@Test
+	public void testWithoutOldNameArgsInput_shouldThrowInvalidArgEx() {
+		
+	}
+	
+
+	
+	@Test
+	public void testNotValidUser_shouldThrowDfEx() {
+		
+	}
+	
+	
+	@Test
+	public void testInvalidNewNameInput_shouldThrowDfEx() {
+		
+	}
+	
+	
+	/*
 	//Scenarios to test
 	//TODO: The old user name doesn't exist in the repository
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
 	
+	
+	
 	@Test
 	@Ignore
-	public void userRenameUserDoesntExist() throws DfException  {
+	public void testInvalidUserDetails_shouldThrowDfEx() throws DfException  {
 		exception.expect(DfException.class);
 		
 		assert (session != null);
@@ -119,9 +187,12 @@ public class CallUserRenameTest {
 		String newName = "Ammar Khalids";
 		
 		
-			DFCUtils.eRecordsUserRenameSynchronous(oldName, newName, session, repository.startsWith("cypf"));			
+		eRecordsUtils.eRecordsUserRenameSynchronous(oldName, newName, session, repository.startsWith("cypf"));			
 			//The exception should have been thrown, otherwise fail the test
 			fail("The DfException was expected");		
 		
 	}
+	*/
+	
+
 }

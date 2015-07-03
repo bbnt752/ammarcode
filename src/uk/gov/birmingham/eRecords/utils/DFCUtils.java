@@ -1,4 +1,6 @@
-package uk.gov.birmingham.utils;
+package uk.gov.birmingham.eRecords.utils;
+
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -51,7 +53,12 @@ public class DFCUtils implements IDFCUtils {
 		return sessionMgr;
 	}
 	
-	
+	public IDfSession getDfcSession(IDfSessionManager sMgr, String repository) throws DfException {
+		 
+		IDfSession session = sMgr.newSession(repository);
+		return session; 
+
+	}
 	
 	
 	/**
@@ -62,7 +69,7 @@ public class DFCUtils implements IDFCUtils {
 	 * 
 	 * 
 	 */
-	public IDfCollection executeMethodSynchronous (String methodName, String arguments, IDfSession session) throws DfException {
+	public IDfCollection callMethodSynchronously (String methodName, String arguments, IDfSession session) throws DfException {
 		// Call the method.
 		// *********************************************************************************
 		IDfList argList = new DfList();
@@ -151,9 +158,9 @@ public class DFCUtils implements IDFCUtils {
 					+ "append arguments_keys='unlock_locked_obj', append arguments_values='" + escapedOldUserName + "', append arguments_values='" + escapedNewUserName + "',"
 							+ "append arguments_values='F', append arguments_values='T'";
 			//Now execute this query using executeDQL method
-			executeDQL(jobReqQuery, session);
+			executeNonSelectQuery(jobReqQuery, session);
 			//Now it is time to call the userRename method
-			IDfCollection results = executeMethodSynchronous("dm_UserRename", arguments, session);
+			IDfCollection results = callMethodSynchronously("dm_UserRename", arguments, session);
 			return results;
 	}
 
@@ -199,7 +206,7 @@ public class DFCUtils implements IDFCUtils {
 	 * @return		true/false to show if the query was executed successfully or not
 	 * 
 	 */
-	public void executeDQL(String dql, IDfSession session) throws DfException {
+	public void executeNonSelectQuery(String dql, IDfSession session) throws DfException {
 		IDfQuery query = new DfClientX().getQuery();	
 		query.setDQL(dql);
 		query.execute(session, IDfQuery.DF_EXEC_QUERY);				

@@ -1,9 +1,10 @@
-package uk.gov.birmingham.eRecords.test;
+package uk.gov.birmingham.eRecords.test.ERecordsUtils;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+
+import java.net.URL;
 import java.util.Properties;
 
 import org.junit.After;
@@ -15,9 +16,10 @@ import com.documentum.fc.client.IDfSession;
 import com.documentum.fc.client.IDfSessionManager;
 import com.documentum.fc.client.IDfUser;
 import com.documentum.fc.common.DfException;
-import uk.gov.birmingham.utils.*;
 
-public class InitializeAsUnixUserTest {
+import uk.gov.birmingham.eRecords.utils.*;
+
+public class TestInitializeAsUnixUser {
 
 	private String userName;
 	private String password;
@@ -27,7 +29,8 @@ public class InitializeAsUnixUserTest {
 	private IDFCUtils dfcUtils = null;
 	private IERecordsUtils eRecordsUtils = null;
 
-	public InitializeAsUnixUserTest() {
+	public TestInitializeAsUnixUser() {
+		dfcUtils = new DFCUtils();
 		eRecordsUtils = new ERecordsUtils();
 	}
 	
@@ -35,15 +38,22 @@ public class InitializeAsUnixUserTest {
 	public void setUp() throws Exception {
 		Properties prop = new Properties();
 		InputStream input = null;
+		FileInputStream fileInput = null;
 		
 		try {
-			String filename = "credentials.properties";
-			input = getClass().getResourceAsStream(filename);
-			if (input == null) {
-				fail("Sorry unable to find " + filename);
+			
+			URL location = TestInitializeAsUnixUser.class.getProtectionDomain().getCodeSource().getLocation();
+	        System.out.println(location.getFile());
+	    
+	        File file = new File("config\\credentials.properties");
+			fileInput = new FileInputStream(file);
+			
+			//input = getClass().getResourceAsStream(filename);
+			if (fileInput == null) {
+				fail("could load configuration file");
 				return;
 			}
-			prop.load(input);
+			prop.load(fileInput);
 			
 			userName = prop.getProperty("username");
 			repository = prop.getProperty("repository");
@@ -60,14 +70,12 @@ public class InitializeAsUnixUserTest {
 				}
 			}
 		}
-		
-		
+		 
 		 sMgr = dfcUtils.getSessionManager(userName, password, repository);
-		 assertNotNull(sMgr); 
-		 System.out.println(sMgr.getLocale());
-		 System.out.println(sMgr.getPrincipalName()); 
-		 session = sMgr.newSession(repository); 
-		 assertNotNull(session);
+		 session = dfcUtils.getDfcSession(sMgr, repository); 
+		 if (session == null) {
+			 fail("Could not get a dfc session");
+		 }
 		 
 	}
 
@@ -80,14 +88,17 @@ public class InitializeAsUnixUserTest {
 
 	
 	@Test
-	public void testUnixSuccess() {
+	
+	public void testValidUserDetails_shouldInitializeSuccessfully() {
 		
 		
 		String userName = "Ammar Khalid";
 		String userID = "extaarkd";
 		try {
 			IDfUser user = session.getUser(userName);
-			assertNotNull(user);
+			if (user == null) {
+				fail("The user doesn't exist in the repository");
+			}
 			eRecordsUtils.initializeAsUnixUser(userID, userName, session);			
 			user = session.getUser(userName);
 			assertEquals("unix only", user.getString("user_source"));
@@ -96,20 +107,22 @@ public class InitializeAsUnixUserTest {
 			assertEquals(":" + userID, user.getString("user_global_unique_id"));
 			
 		} catch (DfException df) {
-			fail("There was a DfExceptionwhen it was not expected");
+			fail("There was an Exception thrown and it was not expected");
 		}
 		
 	}
 	
 	@Test
-	@Ignore
-	public void testUserWithQuoteInName() {
+	
+	public void testValidUserDetailsWithQuoteInName_shouldInitializeSuccessfully() {
 		String userName = "Yasmin O'donnell";
 		String userID = "BCCAYNOL";
 
 		try {
 			IDfUser user = session.getUser(userName);
-			assertNotNull(user);
+			if (user == null) {
+				fail("The user doesn't exist in the repository");
+			}
 			eRecordsUtils.initializeAsUnixUser(userID, userName, session);			
 			user = session.getUser(userName);
 			assertEquals("unix only", user.getString("user_source"));
@@ -121,6 +134,12 @@ public class InitializeAsUnixUserTest {
 			fail("There was a DfExceptionwhen it was not expected");
 		}
 
+	}
+	
+	@Test
+	
+	public void testNonValidUserDetails_shouldThrowDFEx() {
+		
 	}
 	
 

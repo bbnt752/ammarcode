@@ -1,4 +1,5 @@
-package uk.gov.birmingham.utils;
+package uk.gov.birmingham.eRecords.utils;
+
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -26,7 +27,7 @@ public class ERecordsUtils implements IERecordsUtils {
 	 * @param session		The DFC session object
 	 * 
 	 */
-	public void executeCYPFUserRenameQueries (String oldUserName, String newUserName, IDfSession session) throws DfException {
+	public void runCYPFUserRenameQueries (String oldUserName, String newUserName, IDfSession session) throws DfException {
 		
 		String escapedOldUserName = oldUserName.replace("'", "''");
 		String escapedNewUserName = newUserName.replace("'", "''");
@@ -34,8 +35,8 @@ public class ERecordsUtils implements IERecordsUtils {
 		String dql1 = "execute EXEC_SQL with query ='update dm_sysobject_s set r_creator_name = ''" + escapedNewUserName + "'' where r_creator_name = ''" + escapedOldUserName + "'' '";
 		String dql2 = "execute EXEC_SQL with query ='update dm_sysobject_s set r_modifier = ''" + escapedNewUserName + "'' where r_modifier = ''" + escapedOldUserName + "'' '";
 		//Now execute the queries
-		dfcUtils.executeDQL(dql1, session);
-		dfcUtils.executeDQL(dql2, session);
+		dfcUtils.executeNonSelectQuery(dql1, session);
+		dfcUtils.executeNonSelectQuery(dql2, session);
 	}
 
 	/**
@@ -45,23 +46,31 @@ public class ERecordsUtils implements IERecordsUtils {
 	 * @param userName		The userName 
 	 */
 	public void initializeAsUnixUser(String userID, String userName, IDfSession session) throws DfException {
-		//We have to run four dql queries in this case as follows:
+		//We have to run four dql queries in this case as follows
+		IDfUser user = null;
 		String escapedUserName = userName.replace("'", "''");
 		boolean txStartedHere = false;
 		if (!session.isTransactionActive()) {
 			session.beginTrans();
 			txStartedHere = true;
 		}
+		user = session.getUser(userName);
+		if (user == null) {
+			System.out.println("The " + userName + " doesn't exist in the system");
+			throw new DfException("The user " + userName +  "doesn't exist in the repository");
+			//return false;
+		}
+
 		String dql1 = "update dm_user objects set user_global_unique_id = ':" + userID + "' where user_name = '" + escapedUserName + "'";
 		String dql2 = "update dm_user objects set user_ldap_dn = '' where user_name = '" + escapedUserName + "'";
 		String dql3 = "update dm_user objects set user_source = 'unix only'  where user_name = '" + escapedUserName + "'";		
 		String dql4 = "update dm_user objects set user_login_name = '" + userID + "'  where user_name = '" + escapedUserName + "'";
 		
 		try {
-			dfcUtils.executeDQL(dql1, session);
-			dfcUtils.executeDQL(dql2, session);
-			dfcUtils.executeDQL(dql3, session);
-			dfcUtils.executeDQL(dql4, session);
+			dfcUtils.executeNonSelectQuery(dql1, session);
+			dfcUtils.executeNonSelectQuery(dql2, session);
+			dfcUtils.executeNonSelectQuery(dql3, session);
+			dfcUtils.executeNonSelectQuery(dql4, session);
 			if (txStartedHere) {
 				session.commitTrans();
 			}
@@ -92,15 +101,15 @@ public class ERecordsUtils implements IERecordsUtils {
 			//System.out.println("Running the method: dm_UserRename. It may take couple minutes....");
 			if (results != null && cypfQueries == true) {
 				//This means we have to execute the queries for cypf
-				executeCYPFUserRenameQueries(oldUserName, newUserName, session);	
+				runCYPFUserRenameQueries(oldUserName, newUserName, session);	
 					
 			} 
 	}
 	
 	
-	public void callLDAPSync(IDfSession session) {
+	public void callLDAPSync(IDfSession session) throws DfException {
 
-		try {
+		
 
 			assert (session != null);
 			
@@ -108,27 +117,18 @@ public class ERecordsUtils implements IERecordsUtils {
 			String arguments = "-docbase_name eimabupp -user_name dmadmin -job_id 080004bc80000395 -method_trace_level 10";
 			String methodName = "dm_LDAPSynchronization";
 
-			IDfCollection results = dfcUtils.executeMethodSynchronous(methodName, arguments, session);
-			assertNotEquals(null, results);
-		} catch (DfException df) {
-			assertEquals(null, df);
-		}
+			IDfCollection results = dfcUtils.callMethodSynchronously(methodName, arguments, session);
+			
 	}
 	
-	public void callUserRename(IDfSession session) {
+	public void callUserRename(IDfSession session) throws DfException {
 		
-		try {
-			assert (session != null);
 			
 			//TODO: The argument for the userRename method below is specific to a repository. It has to be generic.
 			String arguments = "-docbase_name eimabupp -user_name dmadmin -job_id 080004bc80000339 -method_trace_level 10";
-			String methodName = "dm_UserRename";
+			String methodName = "dm_UserRename";			
+			IDfCollection results = dfcUtils.callMethodSynchronously(methodName, arguments, session);
 			
-			IDfCollection results = dfcUtils.executeMethodSynchronous(methodName, arguments, session);
-			assertNotEquals(null, results);
-		} catch (DfException df) {
-			assertEquals(null, df);
-		}
 			
 	}
 

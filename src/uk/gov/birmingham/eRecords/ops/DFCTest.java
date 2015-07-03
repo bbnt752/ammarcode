@@ -1,6 +1,7 @@
 package uk.gov.birmingham.eRecords.ops;
 
-import uk.gov.birmingham.utils.DFCUtils;
+import uk.gov.birmingham.eRecords.utils.DFCUtils;
+import uk.gov.birmingham.eRecords.utils.IDFCUtils;
 
 import com.documentum.fc.client.DfQuery;
 import com.documentum.fc.client.IDfCollection;
@@ -44,7 +45,8 @@ private final String USER_LOGIN = "BCCHSABM";
 		
 		
 		try {
-			sMgr = DFCUtils.getSessionManager(userName, password, repository);
+			IDFCUtils dfcUtils = new DFCUtils();
+			sMgr = dfcUtils.getSessionManager(userName, password, repository);
 			session = sMgr.getSession(repository);
 			
 			//IDfSysObject oJob= (IDfSysObject)session.getObjectByQualification("dm_job where object_name = 'dm_ConsistencyChecker'");
